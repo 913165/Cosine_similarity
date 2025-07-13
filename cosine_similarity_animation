@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cosine Similarity Visualization</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #7f8c8d;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .canvas-container {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            border: 2px solid #e8f4f8;
+        }
+
+        canvas {
+            border: 2px solid #3498db;
+            border-radius: 10px;
+            cursor: crosshair;
+            background: #f8fffe;
+            transition: all 0.3s ease;
+        }
+
+        canvas:hover {
+            border-color: #2980b9;
+            transform: scale(1.02);
+        }
+
+        .controls {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            border: 2px solid #e8f4f8;
+        }
+
+        .vector-input {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border: 1px solid #dee2e6;
+            transition: all 0.3s ease;
+        }
+
+        .vector-input:hover {
+            background: #e9ecef;
+            transform: translateY(-2px);
+        }
+
+        .vector-input h3 {
+            margin: 0 0 10px 0;
+            color: #2c3e50;
+            font-size: 1.2em;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        input[type="number"] {
+            width: 80px;
+            padding: 8px 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 10px rgba(52, 152, 219, 0.3);
+        }
+
+        label {
+            font-weight: 600;
+            color: #2c3e50;
+            min-width: 20px;
+        }
+
+        .result-box {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            margin-top: 20px;
+            box-shadow: 0 10px 25px rgba(52, 152, 219, 0.3);
+            transform: translateY(0);
+            transition: all 0.3s ease;
+        }
+
+        .result-box:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(52, 152, 219, 0.4);
+        }
+
+        .similarity-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin: 10px 0;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .angle-value {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .formula-box {
+            background: #2c3e50;
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-top: 20px;
+            font-family: 'Courier New', monospace;
+            box-shadow: 0 10px 25px rgba(44, 62, 80, 0.3);
+        }
+
+        .formula {
+            font-size: 1.1em;
+            text-align: center;
+            line-height: 1.6;
+        }
+
+        .explanation {
+            background: #f8f9fa;
+            border-left: 4px solid #3498db;
+            padding: 20px;
+            margin-top: 20px;
+            border-radius: 0 10px 10px 0;
+        }
+
+        .legend {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+        }
+
+        .color-box {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            border: 2px solid #fff;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .instructions {
+            text-align: center;
+            color: #7f8c8d;
+            font-style: italic;
+            margin-top: 15px;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            canvas {
+                width: 100%;
+                height: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Cosine Similarity Visualization</h1>
+        <p class="subtitle">Interactive diagram showing the relationship between vectors and their cosine similarity</p>
+        
+        <div class="main-content">
+            <div class="canvas-container">
+                <canvas id="vectorCanvas" width="400" height="400"></canvas>
+                <div class="legend">
+                    <div class="legend-item">
+                        <div class="color-box" style="background: #e74c3c;"></div>
+                        <span>Vector A</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="color-box" style="background: #27ae60;"></div>
+                        <span>Vector B</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="color-box" style="background: #f39c12;"></div>
+                        <span>Angle θ</span>
+                    </div>
+                </div>
+                <p class="instructions">Click on the canvas to set vector endpoints</p>
+            </div>
+            
+            <div class="controls">
+                <div class="vector-input">
+                    <h3>🔴 Vector A</h3>
+                    <div class="input-group">
+                        <label>X:</label>
+                        <input type="number" id="ax" value="3" step="0.1">
+                        <label>Y:</label>
+                        <input type="number" id="ay" value="4" step="0.1">
+                    </div>
+                </div>
+                
+                <div class="vector-input">
+                    <h3>🟢 Vector B</h3>
+                    <div class="input-group">
+                        <label>X:</label>
+                        <input type="number" id="bx" value="4" step="0.1">
+                        <label>Y:</label>
+                        <input type="number" id="by" value="2" step="0.1">
+                    </div>
+                </div>
+                
+                <div class="result-box">
+                    <div>Cosine Similarity</div>
+                    <div class="similarity-value" id="similarity">0.928</div>
+                    <div class="angle-value">Angle: <span id="angle">22.6°</span></div>
+                </div>
+                
+                <div class="formula-box">
+                    <div class="formula">
+                        cos(θ) = (A · B) / (|A| × |B|)<br>
+                        <span id="calculation">= (3×4 + 4×2) / (5.0 × 4.47) = 0.928</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="explanation">
+            <h3>Understanding Cosine Similarity</h3>
+            <p><strong>Cosine similarity</strong> measures the cosine of the angle between two vectors, indicating how similar their directions are:</p>
+            <ul>
+                <li><strong>1.0:</strong> Vectors point in exactly the same direction (0° angle)</li>
+                <li><strong>0.0:</strong> Vectors are perpendicular (90° angle)</li>
+                <li><strong>-1.0:</strong> Vectors point in opposite directions (180° angle)</li>
+            </ul>
+            <p>This metric is widely used in machine learning, text analysis, and recommendation systems because it focuses on orientation rather than magnitude.</p>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('vectorCanvas');
+        const ctx = canvas.getContext('2d');
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+        const scale = 30;
+
+        let vectorA = { x: 3, y: 4 };
+        let vectorB = { x: 4, y: 2 };
+        let isDragging = false;
+        let dragTarget = null;
+
+        function drawGrid() {
+            ctx.strokeStyle = '#ecf0f1';
+            ctx.lineWidth = 1;
+            
+            // Draw grid lines
+            for (let i = -10; i <= 10; i++) {
+                const x = centerX + i * scale;
+                const y = centerY + i * scale;
+                
+                if (x >= 0 && x <= canvas.width) {
+                    ctx.beginPath();
+                    ctx.moveTo(x, 0);
+                    ctx.lineTo(x, canvas.height);
+                    ctx.stroke();
+                }
+                
+                if (y >= 0 && y <= canvas.height) {
+                    ctx.beginPath();
+                    ctx.moveTo(0, y);
+                    ctx.lineTo(canvas.width, y);
+                    ctx.stroke();
+                }
+            }
+        }
+
+        function drawAxes() {
+            ctx.strokeStyle = '#34495e';
+            ctx.lineWidth = 2;
+            
+            // X-axis
+            ctx.beginPath();
+            ctx.moveTo(0, centerY);
+            ctx.lineTo(canvas.width, centerY);
+            ctx.stroke();
+            
+            // Y-axis
+            ctx.beginPath();
+            ctx.moveTo(centerX, 0);
+            ctx.lineTo(centerX, canvas.height);
+            ctx.stroke();
+            
+            // Origin
+            ctx.fillStyle = '#2c3e50';
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, 4, 0, 2 * Math.PI);
+            ctx.fill();
+        }
+
+        function drawVector(vector, color, label) {
+            const endX = centerX + vector.x * scale;
+            const endY = centerY - vector.y * scale;
+            
+            // Vector line
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(centerX, centerY);
+            ctx.lineTo(endX, endY);
+            ctx.stroke();
+            
+            // Arrowhead
+            const angle = Math.atan2(vector.y, vector.x);
+            const arrowLength = 15;
+            const arrowAngle = Math.PI / 6;
+            
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.moveTo(endX, endY);
+            ctx.lineTo(
+                endX - arrowLength * Math.cos(angle - arrowAngle),
+                endY + arrowLength * Math.sin(angle - arrowAngle)
+            );
+            ctx.lineTo(
+                endX - arrowLength * Math.cos(angle + arrowAngle),
+                endY + arrowLength * Math.sin(angle + arrowAngle)
+            );
+            ctx.closePath();
+            ctx.fill();
+            
+            // Label
+            ctx.fillStyle = color;
+            ctx.font = 'bold 16px Arial';
+            ctx.fillText(label, endX + 10, endY - 10);
+            
+            // Endpoint circle for interaction
+            ctx.beginPath();
+            ctx.arc(endX, endY, 8, 0, 2 * Math.PI);
+            ctx.fillStyle = color;
+            ctx.fill();
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        }
+
+        function drawAngle() {
+            const angleA = Math.atan2(vectorA.y, vectorA.x);
+            const angleB = Math.atan2(vectorB.y, vectorB.x);
+            let angleDiff = Math.abs(angleA - angleB);
+            
+            if (angleDiff > Math.PI) {
+                angleDiff = 2 * Math.PI - angleDiff;
+            }
+            
+            const radius = 40;
+            
+            ctx.strokeStyle = '#f39c12';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, -Math.min(angleA, angleB), -Math.max(angleA, angleB), angleA > angleB);
+            ctx.stroke();
+            
+            // Angle label
+            const labelAngle = -(angleA + angleB) / 2;
+            const labelX = centerX + (radius + 20) * Math.cos(labelAngle);
+            const labelY = centerY + (radius + 20) * Math.sin(labelAngle);
+            
+            ctx.fillStyle = '#f39c12';
+            ctx.font = 'bold 14px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('θ', labelX, labelY);
+            ctx.textAlign = 'left';
+        }
+
+        function calculateCosineSimilarity() {
+            const dotProduct = vectorA.x * vectorB.x + vectorA.y * vectorB.y;
+            const magnitudeA = Math.sqrt(vectorA.x * vectorA.x + vectorA.y * vectorA.y);
+            const magnitudeB = Math.sqrt(vectorB.x * vectorB.x + vectorB.y * vectorB.y);
+            
+            if (magnitudeA === 0 || magnitudeB === 0) return 0;
+            
+            const similarity = dotProduct / (magnitudeA * magnitudeB);
+            const angle = Math.acos(Math.max(-1, Math.min(1, similarity))) * (180 / Math.PI);
+            
+            return { similarity, angle, dotProduct, magnitudeA, magnitudeB };
+        }
+
+        function updateDisplay() {
+            const result = calculateCosineSimilarity();
+            
+            document.getElementById('similarity').textContent = result.similarity.toFixed(3);
+            document.getElementById('angle').textContent = result.angle.toFixed(1) + '°';
+            
+            const calculation = `= (${vectorA.x.toFixed(1)}×${vectorB.x.toFixed(1)} + ${vectorA.y.toFixed(1)}×${vectorB.y.toFixed(1)}) / (${result.magnitudeA.toFixed(2)} × ${result.magnitudeB.toFixed(2)}) = ${result.similarity.toFixed(3)}`;
+            document.getElementById('calculation').textContent = calculation;
+        }
+
+        function updateInputs() {
+            document.getElementById('ax').value = vectorA.x.toFixed(1);
+            document.getElementById('ay').value = vectorA.y.toFixed(1);
+            document.getElementById('bx').value = vectorB.x.toFixed(1);
+            document.getElementById('by').value = vectorB.y.toFixed(1);
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            drawGrid();
+            drawAxes();
+            drawAngle();
+            drawVector(vectorA, '#e74c3c', 'A');
+            drawVector(vectorB, '#27ae60', 'B');
+            
+            updateDisplay();
+        }
+
+        function getMousePos(e) {
+            const rect = canvas.getBoundingClientRect();
+            return {
+                x: (e.clientX - rect.left - centerX) / scale,
+                y: -(e.clientY - rect.top - centerY) / scale
+            };
+        }
+
+        function getVectorEndpoint(vector) {
+            return {
+                x: centerX + vector.x * scale,
+                y: centerY - vector.y * scale
+            };
+        }
+
+        function isNearPoint(mousePos, point, threshold = 15) {
+            const canvasMouseX = centerX + mousePos.x * scale;
+            const canvasMouseY = centerY - mousePos.y * scale;
+            const distance = Math.sqrt(
+                Math.pow(canvasMouseX - point.x, 2) + Math.pow(canvasMouseY - point.y, 2)
+            );
+            return distance < threshold;
+        }
+
+        canvas.addEventListener('mousedown', (e) => {
+            const mousePos = getMousePos(e);
+            const endpointA = getVectorEndpoint(vectorA);
+            const endpointB = getVectorEndpoint(vectorB);
+            
+            if (isNearPoint(mousePos, endpointA)) {
+                isDragging = true;
+                dragTarget = 'A';
+                canvas.style.cursor = 'grabbing';
+            } else if (isNearPoint(mousePos, endpointB)) {
+                isDragging = true;
+                dragTarget = 'B';
+                canvas.style.cursor = 'grabbing';
+            } else {
+                // Set nearest vector to clicked position
+                const distA = Math.sqrt(Math.pow(mousePos.x - vectorA.x, 2) + Math.pow(mousePos.y - vectorA.y, 2));
+                const distB = Math.sqrt(Math.pow(mousePos.x - vectorB.x, 2) + Math.pow(mousePos.y - vectorB.y, 2));
+                
+                if (distA < distB) {
+                    vectorA = { x: mousePos.x, y: mousePos.y };
+                } else {
+                    vectorB = { x: mousePos.x, y: mousePos.y };
+                }
+                updateInputs();
+                draw();
+            }
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            const mousePos = getMousePos(e);
+            
+            if (isDragging) {
+                if (dragTarget === 'A') {
+                    vectorA = { x: mousePos.x, y: mousePos.y };
+                } else if (dragTarget === 'B') {
+                    vectorB = { x: mousePos.x, y: mousePos.y };
+                }
+                updateInputs();
+                draw();
+            } else {
+                const endpointA = getVectorEndpoint(vectorA);
+                const endpointB = getVectorEndpoint(vectorB);
+                
+                if (isNearPoint(mousePos, endpointA) || isNearPoint(mousePos, endpointB)) {
+                    canvas.style.cursor = 'grab';
+                } else {
+                    canvas.style.cursor = 'crosshair';
+                }
+            }
+        });
+
+        canvas.addEventListener('mouseup', () => {
+            isDragging = false;
+            dragTarget = null;
+            canvas.style.cursor = 'crosshair';
+        });
+
+        // Input event listeners
+        document.getElementById('ax').addEventListener('input', (e) => {
+            vectorA.x = parseFloat(e.target.value) || 0;
+            draw();
+        });
+
+        document.getElementById('ay').addEventListener('input', (e) => {
+            vectorA.y = parseFloat(e.target.value) || 0;
+            draw();
+        });
+
+        document.getElementById('bx').addEventListener('input', (e) => {
+            vectorB.x = parseFloat(e.target.value) || 0;
+            draw();
+        });
+
+        document.getElementById('by').addEventListener('input', (e) => {
+            vectorB.y = parseFloat(e.target.value) || 0;
+            draw();
+        });
+
+        // Initial draw
+        draw();
+    </script>
+</body>
+</html>
