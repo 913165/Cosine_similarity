@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real-World Cosine Similarity Examples</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #7f8c8d;
+            margin-bottom: 40px;
+            font-size: 1.2em;
+        }
+
+        .examples-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .example-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            border: 3px solid;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .example-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: linear-gradient(90deg, var(--card-color), var(--card-color-light));
+        }
+
+        .similar {
+            --card-color: #27ae60;
+            --card-color-light: #2ecc71;
+            border-color: #27ae60;
+        }
+
+        .unrelated {
+            --card-color: #f39c12;
+            --card-color-light: #e67e22;
+            border-color: #f39c12;
+        }
+
+        .opposite {
+            --card-color: #e74c3c;
+            --card-color-light: #c0392b;
+            border-color: #e74c3c;
+        }
+
+        .example-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+        }
+
+        .similarity-badge {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 20px;
+            color: white;
+            font-weight: bold;
+            font-size: 1.1em;
+            margin-bottom: 15px;
+            background: var(--card-color);
+        }
+
+        .example-title {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+
+        .domain-tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 5px;
+            margin-bottom: 20px;
+            gap: 5px;
+        }
+
+        .domain-tab {
+            flex: 1;
+            padding: 12px 16px;
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            background: transparent;
+            color: #7f8c8d;
+        }
+
+        .domain-tab.active {
+            background: var(--card-color);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .domain-content {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .domain-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .vector-display {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            border-left: 4px solid var(--card-color);
+        }
+
+        .vector-label {
+            font-weight: bold;
+            color: var(--card-color);
+            margin-bottom: 5px;
+        }
+
+        .calculation {
+            background: #2c3e50;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            text-align: center;
+        }
+
+        .explanation {
+            background: #ecf0f1;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            border-left: 4px solid var(--card-color);
+        }
+
+        .use-cases {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 30px;
+            border: 2px solid #e9ecef;
+        }
+
+        .use-cases h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+
+        .use-case-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .use-case {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid #3498db;
+        }
+
+        .use-case h3 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .feature-highlight {
+            background: linear-gradient(135deg, var(--card-color), var(--card-color-light));
+            color: white;
+            padding: 3px 8px;
+            border-radius: 5px;
+            font-size: 0.9em;
+            font-weight: bold;
+        }
+
+        @media (max-width: 768px) {
+            .examples-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .domain-tabs {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Real-World Cosine Similarity Examples</h1>
+        <p class="subtitle">Three comprehensive examples showing Similar (~1.0), Unrelated (~0.0), and Opposite (~-1.0) relationships</p>
+        
+        <div class="examples-grid">
+            <!-- SIMILAR EXAMPLE -->
+            <div class="example-card similar">
+                <div class="similarity-badge">Cosine Similarity ≈ 0.95</div>
+                <div class="example-title">🎯 SIMILAR</div>
+                
+                <div class="domain-tabs">
+                    <div class="domain-tab active" onclick="switchTab(this, 'similar', 'text')">📝 Text Analysis</div>
+                    <div class="domain-tab" onclick="switchTab(this, 'similar', 'recommendation')">🛒 E-commerce</div>
+                    <div class="domain-tab" onclick="switchTab(this, 'similar', 'sentiment')">😊 Sentiment</div>
+                </div>
+
+                <div class="domain-content active" id="similar-text">
+                    <h4>Document Similarity: Movie Reviews</h4>
+                    <div class="vector-display">
+                        <div class="vector-label">Document A: "The movie was fantastic and amazing"</div>
+                        Vector: [2, 1, 1, 1, 1, 0, 0, 0]<br>
+                        <small>['movie':2, 'fantastic':1, 'amazing':1, 'great':0, 'terrible':0, ...]</small>
+                    </div>
+                    <div class="vector-display">
+                        <div class="vector-label">Document B: "This movie was great and fantastic"</div>
+                        Vector: [2, 1, 0, 1, 0, 1, 0, 0]<br>
+                        <small>['movie':2, 'fantastic':1, 'amazing':0, 'great':1, 'terrible':0, ...]</small>
+                    </div>
+                    <div class="calculation">
+                        cos(θ) = (4+1+0+1) / (√9 × √7) ≈ 0.95
+                    </div>
+                    <div class="explanation">
+                        <strong>Why Similar:</strong> Both documents share key positive words like "movie" and "fantastic", with similar sentiment and topic focus.
+                    </div>
+                </div>
+
+                <div class="domain-content" id="similar-recommendation">
+                    <h4>Product Recommendation: User Preferences</h4>
+                    <div class="vector-display">
+                        <div class="vector-label">User A Ratings: Electronics enthusiast</div>
+                        Vector: [5, 5, 4, 1, 1, 2, 5, 4]<br>
+                        <small>[Phone, Laptop, Tablet, Book, Clothes, Food, Camera, Headphones]</small>
+                    </div>
+                    <div class="vector-display">
+                        <div class="vector-label">User B Ratings: Tech lover</div>
+                        Vector: [4, 5, 5, 2, 1, 1, 4, 5]<br>
+                        <small>[Phone, Laptop, Tablet, Book, Clothes, Food, Camera, Headphones]</small>
+                    </div>
+                    <div class="calculation">
+                        cos(θ) = (20+25+20+2+1+2+20+20) / (√87 × √88) ≈ 0.94
+                    </div>
+                    <div class="explanation">
+                        <strong>Why Similar:</strong> Both users highly rate technology products and show minimal interest in non-tech items.
+                    </div>
+                </div>
+
+                <div class="domain-content" id="similar-sentiment">
+                    <h4>Sentiment Analysis: Customer Feedback</h4>
+                    <div class="vector-display">
+                        <div class="vector-label">Review A: "Excellent service, very satisfied"</div>
+                        Vector: [0.9, 0.1, 0.8, 0.2, 0.9, 0.1]<br>
+                        <small>[positive, negative, satisfaction, anger, recommendation, complaint]</small>
+                    </div>
+                    <div class="vector-display">
+                        <div class="vector-label">Review B: "Outstanding quality, highly recommend"</div>
+                        Vector: [0.95, 0.05, 0.85, 0.15, 0.95, 0.05]<br>
+                        <small>[positive, negative, satisfaction, anger, recommendation, complaint]</small>
+                    </div>
+                    <div class="calculation">
+                        cos(θ) = (0.855+0.005+0.68+0.03+0.855+0.005) / (√2.45 × √2.55) ≈ 0.98
+                    </div>
+                    <div class="explanation">
+                        <strong>Why Similar:</strong> Both reviews express strong positive sentiment with high satisfaction and recommendation scores.
+                    </div>
+                </div>
+            </div>
+
+            <!-- UNRELATED EXAMPLE -->
+            <div class="example-card unrelated">
+                <div class="similarity-badge">Cosine Similarity ≈ 0.02</div>
+                <div class="example-title">🔄 UNRELATED</div>
+                
+                <div class="domain-tabs">
+                    <div class="domain-tab active" onclick="switchTab(this, 'unrelated', 'text')">📝 Text Analysis</div>
+                    <div class="domain-tab" onclick="switchTab(this, 'unrelated', 'recommendation')">🛒 E-commerce</div>
+                    <div class="domain-tab" onclick="switchTab(this, 'unrelated', 'features')">🔢 Features</div>
+                </div>
+
+                <div class="domain-content active" id="unrelated-text">
+                    <h4>Topic Classification: Different Domains</h4>
+                    <div class="vector-display">
+                        <div class="vector-label">Document A: "Machine learning algorithms classify data"</div>
+                        Vector: [1, 1, 1, 1, 0, 0, 0, 0]<br>
+                        <small>['machine':1, 'learning':1, 'algorithms':1, 'data':1, 'recipe':0, 'cooking':0, ...]</small>
+                    </div>
+                    <div class="vector-display">
+                        <div class="vector-label">Document B: "This delicious recipe requires fresh ingredients"</div>
+                        Vector: [0, 0, 0, 0, 1, 1, 1, 1]<br>
+                        <small>['machine':0, 'learning':0, 'algorithms':0, 'data':0, 'recipe':1, 'cooking':1, ...]</small>
+                    </div>
+                    <div class="calculation">
+                        cos(θ) = (0+0+0+0+0+0+0+0) / (√4 × √4) = 0.00
+                    </div>
+                    <div class="explanation">
+                        <strong>Why Unrelated:</strong> No shared vocabulary - one discusses technology, the other cooking. Zero word overlap.
+                    </div>
+                </div>
+
+                <div class="domain-content" id="unrelated-recommendation">
+                    <h4>User Behavior: Different Interests</h4>
+                    <div class="vector-display">
+                        <div class="vector-label">User A: Sports enthusiast</div>
+                        Vector: [5, 5, 4, 5, 1, 1, 1, 2]<br>
+                        <small>[Football, Basketball, Gym, Running, Books, Music, Art, Gaming]</small>
+                    </div>
+                    <div class="vector-display">
+                        <div class="vector-label">User B: Arts & culture lover</div>
+                        Vector: [1, 1, 2, 1, 5, 5, 5, 4]<br>
+                        <small>[Football, Basketball, Gym, Running, Books, Music, Art, Gaming]</small>
+                    </div>
+                    <div class="calculation">
+                        cos(θ) = (5+5+8+5+5+5+5+8) / (√91 × √78) ≈ 0.05
+                    </div>
+                    <div class="explanation">
+                        <strong>Why Unrelated:</strong> Users have completely different interest profiles - one prefers physical activities, the other intellectual/cultural pursuits.
+                    </div>
+                </div>
+
+                <div class="domain-content" id="unrelated-features">
+                    <h4>Image Recognition: Different Objects</h4>
+                    <div class="vector-display">
+                        <div class="vector-label">Image A: Car features</div>
+                        Vector: [0.8, 0.9, 0.7, 0.0, 0.1, 0.0]<br>
+                        <small>[wheels, metal, speed, fur, paws, tail]</small>
+                    </div>
+                    <div class="vector-display">
+                        <div class="vector-label">Image B: Cat features</div>
+                        Vector: [0.0, 0.1, 0.0, 0.9, 0.8, 0.9]<br>
+                        <small>[wheels, metal, speed, fur, paws, tail]</small>
+                    </div>
+                    <div class="calculation">
+                        cos(θ) = (0+0.09+0+0+0.08+0) / (√1.94 × √2.46) ≈ 0.08
+                    </div>
+                    <div class="explanation">
+                        <strong>Why Unrelated:</strong> Cars and cats have fundamentally different visual features with minimal overlap in characteristics.
+                    </div>
+                </div>
+            </div>
+
+            <!-- OPPOSITE EXAMPLE -->
+            <div class="example-card opposite">
+                <div class="similarity-badge">Cosine Similarity ≈ -0.89</div>
+                <div class="example-title">↔️ OPPOSITE</div>
+                
+                <div class="domain-tabs">
+                    <div class="domain-tab active" onclick="switchTab(this, 'opposite', 'sentiment')">😊😢 Sentiment</div>
+                    <div class="domain-tab" onclick="switchTab(this, 'opposite', 'stock')">📈📉 Finance</div>
+                    <div class="domain-tab" onclick="switchTab(this, 'opposite', 'preference')">👍👎 Preferences</div>
+                </div>
+
+                <div class="domain-content active" id="opposite-sentiment">
+                    <h4>Sentiment Analysis: Opposite Reviews</h4>
+                    <div class="vector-display">
+                        <div class="vector-label">Review A: "Absolutely terrible, worst experience ever"</div>
+                        Vector: [0.1, 0.9, 0.2, 0.8, 0.1, 0.9]<br>
+                        <small>[positive, negative, satisfaction, anger, recommendation, complaint]</small>
+                    </div>
+                    <div class="vector-display">
+                        <div class="vector-label">Review B: "Fantastic service, highly recommend to everyone"</div>
+                        Vector: [0.9, 0.1, 0.8, 0.2, 0.9, 0.1]<br>
+                        <small>[positive, negative, satisfaction, anger, recommendation, complaint]</small>
+                    </div>
+                    <div class="calculation">
+                        cos(θ) = (0.09+0.09+0.16+0.16+0.09+0.09) / (√2.45 × √2.45) ≈ -0.89
+                    </div>
+                    <div class="explanation">
+                        <strong>Why Opposite:</strong> Reviews express completely contrasting sentiments - one extremely negative, the other extremely positive.
+                    </div>
+                </div>
+
+                <div class="domain-content" id="opposite-stock">
+                    <h4>Stock Market: Bull vs Bear Sentiment</h4>
+                    <div class="vector-display">
+                        <div class="vector-label">Analyst A: Bull market prediction</div>
+                        Vector: [0.9, 0.1, 0.8, 0.2, 0.9, 0.1]<br>
+                        <small>[bullish, bearish, growth, decline, buy, sell]</small>
+                    </div>
+                    <div class="vector-display">
+                        <div class="vector-label">Analyst B: Bear market prediction</div>
+                        Vector: [0.1, 0.9, 0.2, 0.8, 0.1, 0.9]<br>
+                        <small>[bullish, bearish, growth, decline, buy, sell]</small>
+                    </div>
+                    <div class="calculation">
+                        cos(θ) = (0.09+0.09+0.16+0.16+0.09+0.09) / (√2.45 × √2.45) ≈ -0.89
+                    </div>
+                    <div class="explanation">
+                        <strong>Why Opposite:</strong> Analysts have completely opposing market views - one predicts growth, the other predicts decline.
+                    </div>
+                </div>
+
+                <div class="domain-content" id="opposite-preference">
+                    <h4>User Preferences: Opposite Tastes</h4>
+                    <div class="vector-display">
+                        <div class="vector-label">User A: Adventure seeker</div>
+                        Vector: [5, 1, 5, 1, 5, 1, 5, 1]<br>
+                        <small>[Action, Romance, Thriller, Drama, Sports, Art, Adventure, Documentary]</small>
+                    </div>
+                    <div class="vector-display">
+                        <div class="vector-label">User B: Calm content lover</div>
+                        Vector: [1, 5, 1, 5, 1, 5, 1, 5]<br>
+                        <small>[Action, Romance, Thriller, Drama, Sports, Art, Adventure, Documentary]</small>
+                    </div>
+                    <div class="calculation">
+                        cos(θ) = (5+5+5+5+5+5+5+5) / (√92 × √92) ≈ -0.87
+                    </div>
+                    <div class="explanation">
+                        <strong>Why Opposite:</strong> Users have completely opposite preferences - one likes high-energy content, the other prefers calm, reflective content.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="use-cases">
+            <h2>🚀 Applications in Industry</h2>
+            <div class="use-case-grid">
+                <div class="use-case">
+                    <h3>🔍 Search Engines</h3>
+                    <p>Find documents <span class="feature-highlight">similar</span> to user queries, rank search results by relevance, and filter out <span class="feature-highlight">unrelated</span> content.</p>
+                </div>
+                
+                <div class="use-case">
+                    <h3>🎬 Recommendation Systems</h3>
+                    <p>Netflix, Spotify, and Amazon use cosine similarity to find users with <span class="feature-highlight">similar</span> tastes and avoid recommending <span class="feature-highlight">opposite</span> preferences.</p>
+                </div>
+                
+                <div class="use-case">
+                    <h3>📱 Social Media</h3>
+                    <p>Content filtering, friend suggestions based on <span class="feature-highlight">similar</span> interests, and detecting fake accounts with <span class="feature-highlight">unrelated</span> behavior patterns.</p>
+                </div>
+                
+                <div class="use-case">
+                    <h3>🏥 Medical Diagnosis</h3>
+                    <p>Compare patient symptoms to find <span class="feature-highlight">similar</span> cases, rule out <span class="feature-highlight">unrelated</span> conditions, and identify <span class="feature-highlight">opposite</span> treatment responses.</p>
+                </div>
+                
+                <div class="use-case">
+                    <h3>📊 Market Research</h3>
+                    <p>Group customers with <span class="feature-highlight">similar</span> buying patterns, identify <span class="feature-highlight">unrelated</span> market segments, and detect <span class="feature-highlight">opposite</span> brand preferences.</p>
+                </div>
+                
+                <div class="use-case">
+                    <h3>🤖 AI Training</h3>
+                    <p>Data augmentation by finding <span class="feature-highlight">similar</span> examples, removing <span class="feature-highlight">unrelated</span> noise, and balancing datasets with <span class="feature-highlight">opposite</span> classes.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function switchTab(tabElement, cardType, contentType) {
+            // Remove active class from all tabs in this card
+            const card = tabElement.closest('.example-card');
+            const tabs = card.querySelectorAll('.domain-tab');
+            const contents = card.querySelectorAll('.domain-content');
+            
+            tabs.forEach(tab => tab.classList.remove('active'));
+            contents.forEach(content => content.classList.remove('active'));
+            
+            // Add active class to clicked tab and corresponding content
+            tabElement.classList.add('active');
+            document.getElementById(`${cardType}-${contentType}`).classList.add('active');
+        }
+
+        // Add some interactive hover effects
+        document.querySelectorAll('.example-card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-8px) scale(1.02)';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0) scale(1)';
+            });
+        });
+
+        // Add click animation to similarity badges
+        document.querySelectorAll('.similarity-badge').forEach(badge => {
+            badge.addEventListener('click', function() {
+                this.style.transform = 'scale(1.1)';
+                this.style.transition = 'transform 0.2s ease';
+                
+                setTimeout(() => {
+                    this.style.transform = 'scale(1)';
+                }, 200);
+            });
+        });
+    </script>
+</body>
+</html>
